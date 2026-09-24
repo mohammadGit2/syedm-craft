@@ -1,0 +1,17 @@
+import { Group, Scene } from 'three';
+import { BlockId } from '../blocks/BlockRegistry';
+import { fractalNoise, hash2 } from '../utils/Noise';
+import { CHUNK_SIZE, Chunk, WORLD_HEIGHT } from './Chunk';
+
+export class World {
+  readonly group = new Group(); readonly chunks = new Map<string, Chunk>(); changes = new Map<string, BlockId>(); readonly seaLevel=16;
+  constructor(readonly scene: Scene, readonly seed: number) { scene.add(this.group); }
+  key(cx:number,cz:number) { return `${cx},${cz}`; } blockKey(x:number,y:number,z:number) { return `${x},${y},${z}`; }
+  heightAt(x:number,z:number) { const broad=fractalNoise(x,z,this.seed), peaks=Math.max(0,fractalNoise(x+930,z-420,this.seed+8)-.58)*30; return Math.max(4,Math.min(WORLD_HEIGHT-6,Math.floor(9+broad*15+peaks))); }
+  generateAround(x:number,z:number, radius=2) { const cx=Math.floor(x/CHUNK_SIZE),cz=Math.floor(z/CHUNK_SIZE); for(let dz=-radius;dz<=radius;dz++)for(let dx=-radius;dx<=radius;dx++) this.ensureChunk(cx+dx,cz+dz); for(const [key,chunk] of this.chunks) { const [qx,qz]=key.split(',').map(Number);if(Math.abs(qx-cx)>radius+1||Math.abs(qz-cz)>radius+1){this.group.remove(chunk.group);this.chunks.delete(key);} } }
+  ensureChunk(cx:number,cz:number) { const key=this.key(cx,cz); if(this.chunks.has(key))return; const chunk=new Chunk(this,cx,cz); for(let z=0;z<CHUNK_SIZE;z++)for(let x=0;x<CHUNK_SIZE;x++){const wx=cx*CHUNK_SIZE+x,wz=cz*CHUNK_SIZE+z,h=this.heightAt(wx,wz), beach=h<=this.seaLevel+1; for(let y=0;y<=h;y++){let id:BlockId=y===h?(beach?4:1):y>h-4?2:3;if(y<h-5&&hash2(wx*3+y,wz*7-y,this.seed)>.985)id=hash2(wx+y,wz-y,this.seed)> .5?9:10;chunk.set(x,y,z,id);}for(let y=h+1;y<=this.seaLevel;y++)chunk.set(x,y,z,7); if(!beach&&h>this.seaLevel+1&&hash2(wx,wz,this.seed)>.965) this.makeTree(chunk,x,h+1,z); } for (const [changed,id] of this.changes) { const [x,y,z]=changed.split(',').map(Number);if(Math.floor(x/CHUNK_SIZE)===cx&&Math.floor(z/CHUNK_SIZE)===cz)chunk.set(((x%CHUNK_SIZE)+CHUNK_SIZE)%CHUNK_SIZE,y,((z%CHUNK_SIZE)+CHUNK_SIZE)%CHUNK_SIZE,id); } this.chunks.set(key,chunk);this.group.add(chunk.group);chunk.rebuild(); }
+  private makeTree(c:Chunk,x:number,y:number,z:number){if(x<2||z<2||x>13||z>13)return;const tall=3+Math.floor(hash2(x+c.cx*19,z+c.cz*7,this.seed)*2);for(let yy=0;yy<tall;yy++)c.set(x,y+yy,z,5);for(let yy=tall-1;yy<=tall+1;yy++)for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++)if(Math.abs(dx)+Math.abs(dz)<4)c.set(x+dx,y+yy,z+dz,6);}
+  getBlock(x:number,y:number,z:number):BlockId { const override=this.changes.get(this.blockKey(x,y,z)); if(override!==undefined)return override;const cx=Math.floor(x/CHUNK_SIZE),cz=Math.floor(z/CHUNK_SIZE),c=this.chunks.get(this.key(cx,cz));return c?c.get(((x%CHUNK_SIZE)+CHUNK_SIZE)%CHUNK_SIZE,y,((z%CHUNK_SIZE)+CHUNK_SIZE)%CHUNK_SIZE):0; }
+  setBlock(x:number,y:number,z:number,id:BlockId) { if(y<0||y>=WORLD_HEIGHT)return;this.ensureChunk(Math.floor(x/CHUNK_SIZE),Math.floor(z/CHUNK_SIZE));this.changes.set(this.blockKey(x,y,z),id);const affected=new Set<string>();for(const [dx,dz] of [[0,0],[x%CHUNK_SIZE===0?-1:0,0],[x%CHUNK_SIZE===CHUNK_SIZE-1?1:0,0],[0,z%CHUNK_SIZE===0?-1:0],[0,z%CHUNK_SIZE===CHUNK_SIZE-1?1:0]])affected.add(this.key(Math.floor(x/CHUNK_SIZE)+dx,Math.floor(z/CHUNK_SIZE)+dz));affected.forEach(k=>this.chunks.get(k)?.rebuild()); }
+  solidAt(x:number,y:number,z:number){return this.getBlock(Math.floor(x),Math.floor(y),Math.floor(z))!==0 && this.getBlock(Math.floor(x),Math.floor(y),Math.floor(z))!==7;}
+}
