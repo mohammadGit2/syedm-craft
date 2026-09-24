@@ -30,7 +30,7 @@ Use `npm run build` for a production/typecheck build and `npm run preview` to se
 
 ## Implemented foundation
 
-- Seeded procedural hills, beaches, water, forest trees, ores, chunk loading/unloading, and hidden-face voxel meshing.
+- Seeded biome-aware Greenreach plains, Deepwood forests, Sunscar desert, wetlands, stone peaks and frost peaks, with caves, rare stone ruins, beaches, water, depth-aware ores, chunk loading/unloading, and hidden-face voxel meshing.
 - Responsive first-person movement with voxel collision, gravity, sprinting and jumping.
 - Raycast targeting outline, voxel mining particles, validated block placement, resource pickup, functional hotbar and stacked inventory.
 - A wandering, player-reactive **Glowhorn** creature, dynamic daylight, ambient fog, shadows, and a compact debug HUD.
@@ -47,4 +47,4 @@ Use `npm run build` for a production/typecheck build and `npm run preview` to se
 
 ## Next milestone
 
-Add caves and richer biome rules, tool durability and recipes, combat/health, audio, better creature behaviors, structures, and a settings menu. Greedy chunk meshing and off-main-thread generation are intended performance upgrades after those systems are in place.
+Add tools and recipes, combat/health, audio, better creature behaviors, weather, richer structures, and a settings menu. Greedy chunk meshing and off-main-thread generation are intended performance upgrades after those systems are in place.

@@ -1,6 +1,6 @@
 import { Color } from 'three';
 
-export type BlockId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+export type BlockId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 export interface BlockDefinition { id: BlockId; key: string; name: string; color: Color; solid: boolean; transparent?: boolean; hardness: number; }
 
 const raw: Array<Omit<BlockDefinition, 'color'> & { color: number }> = [
@@ -14,7 +14,9 @@ const raw: Array<Omit<BlockDefinition, 'color'> & { color: number }> = [
   { id: 7, key: 'water', name: 'Lumenwater', color: 0x2688a9, solid: false, transparent: true, hardness: 0 },
   { id: 8, key: 'glass', name: 'Prism Glass', color: 0xa9e6e5, solid: true, transparent: true, hardness: .25 },
   { id: 9, key: 'coal', name: 'Night Coal', color: 0x2a3036, solid: true, hardness: 1.1 },
-  { id: 10, key: 'iron', name: 'Dawn Iron', color: 0xa97a61, solid: true, hardness: 1.25 }
+  { id: 10, key: 'iron', name: 'Dawn Iron', color: 0xa97a61, solid: true, hardness: 1.25 },
+  { id: 11, key: 'snow', name: 'Frostcap', color: 0xe3eef4, solid: true, hardness: .2 },
+  { id: 12, key: 'moss', name: 'Verdant Moss', color: 0x476e52, solid: true, hardness: .3 }
 ];
 export const BLOCKS = raw.map((b) => ({ ...b, color: new Color(b.color) })) as BlockDefinition[];
 export const block = (id: number): BlockDefinition => BLOCKS[id] ?? BLOCKS[0];
