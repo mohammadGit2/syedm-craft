@@ -1,0 +1,3 @@
+import { BlockId, block, placeableIds } from '../blocks/BlockRegistry';
+export interface ItemStack { id: BlockId; count: number; }
+export class Inventory { readonly slots: Array<ItemStack | null> = Array.from({length:9},(_,i)=>({id:placeableIds[i],count:i<5?24:12})); selected=0; add(id:BlockId,count=1){for(const stack of this.slots)if(stack?.id===id&&stack.count<64){stack.count=Math.min(64,stack.count+count);return;}const empty=this.slots.findIndex(s=>!s);if(empty>=0)this.slots[empty]={id,count};} selectedStack(){return this.slots[this.selected];} consumeSelected(){const s=this.selectedStack();if(!s)return false;if(--s.count<=0)this.slots[this.selected]=null;return true;} label(i:number){const s=this.slots[i];return s?`${block(s.id).name} · ${s.count}`:'Empty';} }
